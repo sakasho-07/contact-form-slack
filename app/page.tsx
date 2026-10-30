@@ -1,69 +1,176 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
+import { contactSchema } from "@/lib/contact-schema";
 
 export default function Home() {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
+  const [errors, setErrors] = useState<Record<string, string[] | undefined>>({});
+  const [statusMessage, setStatusMessage] = useState("");
+  const [isError, setIsError] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    setStatusMessage("");
+    setIsError(false);
+    
+    const result = contactSchema.safeParse({
+      name,
+      email,
+      message,
+    });
+
+    if (!result.success) {
+      setErrors(result.error.flatten().fieldErrors);
+      return;
+    }
+
+    setErrors({});
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          message,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setIsError(true);
+        setStatusMessage(data.message || "送信に失敗しました。");
+        return;
+      }
+
+      setIsError(false);
+      setStatusMessage("お問い合わせを受け付けました！");
+      console.log("APIからの返事:", data);
+    } catch (error) {
+      console.error("送信エラー:", error);
+      setIsError(true);
+      setStatusMessage("通信に失敗しました。時間をおいて再度お試しください。");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <main className="min-h-screen bg-gray-50 px-6 py-12">
+      <div className="mx-auto max-w-xl rounded-xl bg-white p-8 shadow-sm">
+        <h1 className="mb-2 text-2xl font-bold text-gray-900">
+          お問い合わせ
+        </h1>
+
+        <p className="mb-8 text-sm text-gray-600">
+          以下のフォームに必要事項を入力してください。
+        </p>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label
+              htmlFor="name"
+              className="mb-2 block text-sm font-medium text-gray-700"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
+              お名前
+            </label>
+
+            <input
+              id="name"
+              name="name"
+              type="text"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              className="w-full rounded-md border border-gray-300 px-3 py-2"
+              placeholder="山田 太郎"
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            {errors.name?.[0] && (
+              <p className="mt-1 text-sm text-red-600">
+                {errors.name[0]}
+              </p>
+            )}
+
+          </div>
+
+          <div>
+            <label
+              htmlFor="email"
+              className="mb-2 block text-sm font-medium text-gray-700"
+            >
+              メールアドレス
+            </label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              className="w-full rounded-md border border-gray-300 px-3 py-2"
+              placeholder="example@example.com"
+            />
+
+            {errors.email?.[0] && (
+              <p className="mt-1 text-sm text-red-600">
+                {errors.email[0]}
+              </p>
+            )}
+
+
+          </div>
+
+          <div>
+            <label
+              htmlFor="message"
+              className="mb-2 block text-sm font-medium text-gray-700"
+            >
+              お問い合わせ内容
+            </label>
+            <textarea
+              id="message"
+              name="message"
+              value={message}
+              onChange={(event) => setMessage(event.target.value)}
+              rows={5}
+              className="w-full rounded-md border border-gray-300 px-3 py-2"
+              placeholder="お問い合わせ内容を入力してください"
+            />
+            {errors.message?.[0] && (
+              <p className="mt-1 text-sm text-red-600">
+                {errors.message[0]}
+              </p>
+            )}
+          </div>
+
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className={`w-full rounded-md px-4 py-3 font-medium text-white transition-colors ${isSubmitting
+              ? "cursor-not-allowed bg-gray-400"
+              : "bg-blue-600 hover:bg-blue-700"
+              }`}
           >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+            {isSubmitting ? "送信中..." : "送信する"}
+          </button>
+        </form>
+        {statusMessage && (
+          <p
+            className={`mt-4 text-sm ${isError ? "text-red-600" : "text-green-600"
+              }`}
+          >
+            {statusMessage}
+          </p>
+        )}
+      </div>
+    </main>
   );
 }
