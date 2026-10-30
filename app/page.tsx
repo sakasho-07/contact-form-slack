@@ -17,7 +17,7 @@ export default function Home() {
 
     setStatusMessage("");
     setIsError(false);
-    
+
     const result = contactSchema.safeParse({
       name,
       email,
@@ -91,7 +91,7 @@ export default function Home() {
               type="text"
               value={name}
               onChange={(event) => setName(event.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2"
+              className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder:text-gray-500"
               placeholder="山田 太郎"
             />
             {errors.name?.[0] && (
@@ -115,7 +115,7 @@ export default function Home() {
               type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2"
+              className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder:text-gray-500"
               placeholder="example@example.com"
             />
 
@@ -141,7 +141,7 @@ export default function Home() {
               value={message}
               onChange={(event) => setMessage(event.target.value)}
               rows={5}
-              className="w-full rounded-md border border-gray-300 px-3 py-2"
+              className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder:text-gray-500"
               placeholder="お問い合わせ内容を入力してください"
             />
             {errors.message?.[0] && (
