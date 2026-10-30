@@ -38,6 +38,14 @@ export async function POST(request: Request) {
     });
 
     if (!slackResponse.ok) {
+        const errorText = await slackResponse.text();
+
+        console.error(
+            "Slack通知エラー:",
+            slackResponse.status,
+            errorText
+        );
+
         return Response.json(
             { message: "Slackへの通知に失敗しました" },
             { status: 502 }
